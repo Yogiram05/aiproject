@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare OCR & Clinical Document Intelligence</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background: #f5f5ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e8eaff;
+            border-color: #764ba2;
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+
+        .results-area {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .entity-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .entity-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .entity-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .entity-label {
+            font-weight: bold;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        .entity-value {
+            color: #666;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .badge-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .badge-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .checkbox-group {
+            margin: 15px 0;
+        }
+
+        .checkbox-group label {
+            display: block;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Healthcare OCR & Clinical Document Intelligence</h1>
+            <p>AI-Powered Medical Document Processing & Claims Automation Platform</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Upload Section -->
+            <div class="card">
+                <h2>📄 Upload Medical Document</h2>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <p>Drag & drop your document here or click to browse</p>
+                    <p style="color: #999; margin-top: 10px; font-size: 0.9em;">
+                        Supported: PDF, PNG, JPG, JPEG, TIFF
+                    </p>
+                </div>
+
+                <input type="file" id="fileInput" accept=".pdf,.png,.jpg,.jpeg,.tiff">
+
+                <label for="documentType">Document Type:</label>
+                <select id="documentType">
+                    <option value="unknown">Auto-detect</option>
+                    <option value="prescription">Prescription</option>
+                    <option value="lab_report">Lab Report</option>
+                    <option value="discharge_summary">Discharge Summary</option>
+                    <option value="claim_form">Claim Form</option>
+                </select>
+
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="enablePHI" checked>
+                        Enable PHI Redaction (Privacy Protection)
+                    </label>
+                    <label>
+                        <input type="checkbox" id="enableFraud" checked>
+                        Enable Fraud Detection
+                    </label>
+                </div>
+
+                <button class="btn" id="processBtn" disabled>Process Document</button>
+                <button class="btn" id="clearBtn">Clear All</button>
+
+                <div id="uploadStatus"></div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="card">
+                <h2>📊 Processing Results</h2>
+                <div id="results" class="results-area">
+                    <p style="color: #999; text-align: center; padding: 40px;">
+                        Upload and process a document to see results here
+                    </p>
+                </div>
+            </div>
+
+            <!-- Extracted Entities Section -->
+            <div class="card full-width" id="entitiesCard" style="display: none;">
+                <h2>🔬 Extracted Clinical Entities</h2>
+                <div id="entitiesContent"></div>
+            </div>
+
+            <!-- Claims Validation Section -->
+            <div class="card full-width" id="claimsCard" style="display: none;">
+                <h2>💳 Claims Validation & Fraud Detection</h2>
+                <div id="claimsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        let currentDocumentId = null;
+
+        // Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const processBtn = document.getElementById('processBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const resultsDiv = document.getElementById('results');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const entitiesCard = document.getElementById('entitiesCard');
+        const entitiesContent = document.getElementById('entitiesContent');
+        const claimsCard = document.getElementById('claimsCard');
+        const claimsContent = document.getElementById('claimsContent');
+
+        // Upload area click
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        // Process button
+        processBtn.addEventListener('click', processDocument);
+
+        // Clear button
+        clearBtn.addEventListener('click', clearAll);
+
+        async function handleFileUpload(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('document_type', document.getElementById('documentType').value);
+
+            showStatus('Uploading document...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    currentDocumentId = result.document_id;
+                    showStatus(`✓ Upload successful! File: ${result.filename}`, 'success');
+                    processBtn.disabled = false;
+                } else {
+                    showStatus(`✗ Upload failed: ${result.detail}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`✗ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function processDocument() {
+            if (!currentDocumentId) {
+                showStatus('Please upload a document first', 'error');
+                return;
+            }
+
+            const documentType = document.getElementById('documentType').value;
+            const enablePHI = document.getElementById('enablePHI').checked;
+            const enableFraud = document.getElementById('enableFraud').checked;
+
+            showLoading();
+            processBtn.disabled = true;
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/process/${currentDocumentId}?document_type=${documentType}&enable_phi_redaction=${enablePHI}&enable_fraud_detection=${enableFraud}`,
+                    { method: 'POST' }
+                );
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    displayResults(result);
+                    showStatus('✓ Processing complete!', 'success');
+                } else {
+                    showStatus(`✗ Processing failed: ${result.detail}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`✗ Error: ${error.message}`, 'error');
+            } finally {
+                processBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            // OCR Results
+            let html = '<div class="entity-section">';
+            html += '<h3>OCR Results</h3>';
+            html += `<div class="stat-card"><div class="stat-number">${data.ocr.average_confidence.toFixed(1)}%</div><div class="stat-label">Average Confidence</div></div>`;
+            html += `<div class="entity-item"><span class="entity-label">Text Blocks:</span><span class="entity-value">${data.ocr.total_text_blocks}</span></div>`;
+            html += `<div class="entity-item"><span class="entity-label">Processing Time:</span><span class="entity-value">${data.processing_time.toFixed(2)}s</span></div>`;
+            html += '</div>';
+
+            resultsDiv.innerHTML = html;
+
+            // Display Entities
+            displayEntities(data.entities);
+        }
+
+        function displayEntities(entities) {
+            let html = '';
+
+            // Medications
+            if (entities.medications && entities.medications.length > 0) {
+                html += '<div class="entity-section"><h3>💊 Medications</h3>';
+                entities.medications.forEach(med => {
+                    html += '<div class="entity-item">';
+                    html += `<div><span class="entity-label">Name:</span> ${med.name}`;
+                    if (med.generic_name) html += ` <span class="badge badge-info">${med.generic_name}</span>`;
+                    html += '</div>';
+                    if (med.dosage) html += `<div><span class="entity-label">Dosage:</span> ${med.dosage}</div>`;
+                    if (med.frequency) html += `<div><span class="entity-label">Frequency:</span> ${med.frequency}</div>`;
+                    if (med.duration) html += `<div><span class="entity-label">Duration:</span> ${med.duration}</div>`;
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+
+            // Lab Tests
+            if (entities.lab_tests && entities.lab_tests.length > 0) {
+                html += '<div class="entity-section"><h3>🔬 Lab Tests</h3>';
+                entities.lab_tests.forEach(test => {
+                    html += '<div class="entity-item">';
+                    html += `<div><span class="entity-label">Test:</span> ${test.test_name}`;
+                    if (test.loinc_code) html += ` <span class="badge badge-info">LOINC: ${test.loinc_code}</span>`;
+                    if (test.is_abnormal) html += ` <span class="badge badge-danger">⚠ ABNORMAL</span>`;
+                    html += '</div>';
+                    if (test.value) html += `<div><span class="entity-label">Value:</span> ${test.value} ${test.unit || ''}</div>`;
+                    if (test.reference_range) html += `<div><span class="entity-label">Reference:</span> ${test.reference_range}</div>`;
+                    if (test.abnormal_reason) html += `<div><span class="entity-label">Reason:</span> ${test.abnormal_reason}</div>`;
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+
+            // Diagnoses
+            if (entities.diagnoses && entities.diagnoses.length > 0) {
+                html += '<div class="entity-section"><h3>🩺 Diagnoses</h3>';
+                entities.diagnoses.forEach(diag => {
+                    html += '<div class="entity-item">';
+                    html += `<div><span class="entity-label">Diagnosis:</span> ${diag.name}`;
+                    if (diag.icd10_code) html += ` <span class="badge badge-success">ICD-10: ${diag.icd10_code}</span>`;
+                    html += '</div>';
+                    if (diag.description) html += `<div><span class="entity-label">Description:</span> ${diag.description}</div>`;
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+
+            entitiesContent.innerHTML = html;
+            entitiesCard.style.display = 'block';
+        }
+
+        function showLoading() {
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Processing document...</p></div>';
+        }
+
+        function showStatus(message, type) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+            uploadStatus.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+            setTimeout(() => {
+                uploadStatus.innerHTML = '';
+            }, 5000);
+        }
+
+        function clearAll() {
+            currentDocumentId = null;
+            fileInput.value = '';
+            resultsDiv.innerHTML = '<p style="color: #999; text-align: center; padding: 40px;">Upload and process a document to see results here</p>';
+            uploadStatus.innerHTML = '';
+            processBtn.disabled = true;
+            entitiesCard.style.display = 'none';
+            claimsCard.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

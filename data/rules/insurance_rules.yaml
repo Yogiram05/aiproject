@@ -1,0 +1,98 @@
+# Sample Insurance Rules Configuration
+
+rules:
+  - rule_id: "DENGUE_001"
+    name: "Dengue NS1 Test Coverage"
+    condition: "dengue_ns1_test"
+    action: "require_fever_duration"
+    message: "Dengue NS1 test covered only if fever duration > 3 days"
+    priority: 1
+    
+  - rule_id: "DIABETES_001"
+    name: "HbA1c Test Frequency"
+    condition: "hba1c_test"
+    action: "check_frequency"
+    message: "HbA1c test covered once every 3 months for diabetic patients"
+    priority: 1
+    
+  - rule_id: "PREEXIST_001"
+    name: "Pre-existing Waiting Period"
+    condition: "pre_existing_condition"
+    action: "check_waiting_period"
+    message: "Pre-existing conditions covered after 24-48 months waiting period"
+    priority: 1
+    
+  - rule_id: "PRESCR_001"
+    name: "Prescription Validity"
+    condition: "medication_claim"
+    action: "require_prescription"
+    message: "Prescription required for medication claims"
+    priority: 1
+    
+  - rule_id: "HOSP_001"
+    name: "Minimum Hospitalization Duration"
+    condition: "hospitalization"
+    action: "check_duration"
+    message: "Minimum 24 hours hospitalization required for claim"
+    priority: 1
+    
+  - rule_id: "LAB_001"
+    name: "Routine Lab Test Frequency"
+    condition: "routine_lab_tests"
+    action: "check_frequency"
+    message: "Routine lab tests covered once per year"
+    priority: 2
+    
+  - rule_id: "DUP_001"
+    name: "Duplicate Claim Prevention"
+    condition: "duplicate_claim"
+    action: "reject"
+    message: "Duplicate claim detected"
+    priority: 1
+    
+  - rule_id: "DOSAGE_001"
+    name: "Maximum Dosage Limit"
+    condition: "medication_dosage"
+    action: "check_limit"
+    message: "Dosage exceeds safe limits"
+    priority: 1
+    
+  - rule_id: "AGE_001"
+    name: "Age-based Coverage"
+    condition: "patient_age"
+    action: "check_age_limits"
+    message: "Treatment not covered for specified age group"
+    priority: 2
+    
+  - rule_id: "LIMIT_001"
+    name: "Sum Insured Limit"
+    condition: "claim_amount"
+    action: "check_sum_insured"
+    message: "Claim amount exceeds sum insured limit"
+    priority: 1
+
+# Coverage Rules
+coverage:
+  dengue_tests:
+    covered: true
+    conditions:
+      - fever_duration_days > 3
+    reimbursement: 100%
+    
+  diabetes_monitoring:
+    hba1c:
+      frequency: "quarterly"
+      covered: true
+    
+  routine_checkup:
+    frequency: "annual"
+    covered: true
+    max_amount: 5000
+
+# Pre-authorization Rules
+pre_authorization:
+  required_for:
+    - hospitalization
+    - surgeries
+    - high_cost_procedures
+  threshold_amount: 50000
